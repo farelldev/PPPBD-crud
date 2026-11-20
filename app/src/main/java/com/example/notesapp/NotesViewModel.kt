@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 
 class NotesViewModel(application: Application) : AndroidViewModel(application) {
     private val dao = AppDatabase.getInstance(application).noteDao()
+
     val notes: StateFlow<List<Note>> = dao.getAll()
         .stateIn(
             scope = viewModelScope,
@@ -17,19 +18,29 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             initialValue = emptyList()
         )
 
-    fun addNote(title: String) {
-        val text = title.trim()
-        if (text.isEmpty()) return
-        viewModelScope.launch { dao.insert(Note(title = text)) }
+    fun addNote(title: String, note: String) {
+        val cleanTitle = title.trim()
+        val cleanNote = note.trim()
+        if (cleanTitle.isEmpty() || cleanNote.isEmpty()) return
+
+        viewModelScope.launch {
+            dao.insert(Note(title = cleanTitle, note = cleanNote))
+        }
     }
 
-    fun updateNote(note: Note, newTitle: String) {
-        val text = newTitle.trim()
-        if (text.isEmpty()) return
-        viewModelScope.launch { dao.update(note.copy(title = text)) }
+    fun updateNote(currentNote: Note, newTitle: String, newNote: String) {
+        val cleanTitle = newTitle.trim()
+        val cleanNote = newNote.trim()
+        if (cleanTitle.isEmpty() || cleanNote.isEmpty()) return
+
+        viewModelScope.launch {
+            dao.update(currentNote.copy(title = cleanTitle, note = cleanNote))
+        }
     }
 
     fun deleteNote(note: Note) {
-        viewModelScope.launch { dao.delete(note) }
+        viewModelScope.launch {
+            dao.delete(note)
+        }
     }
 }
